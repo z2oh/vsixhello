@@ -23,6 +23,18 @@ jobs:
           node-version: '16'
           check-latest: true
 
+      - name: Get Short SHA
+        id: get-short-sha
+        run: echo "::set-output name=sha::$(git rev-parse --short ${GITHUB_SHA})"
+
+      - name: Update the package version
+        uses: jacobtomlinson/gha-find-replace@master
+        with:
+          find: "\"version\": \"(\\d+\\.\\d+\\.\\d+)\""
+          replace: "\"version\": \"$1-${{ steps.get-short-sha.outputs.sha }}\""
+          include: "package.json"
+          exclude: ".git"
+
       - name: Build the VSIX
         run:  |
           npm install
@@ -42,21 +54,13 @@ jobs:
       contents: write
 
     steps:
-      - name: Get Short SHA
-        id: get-short-sha
-        run: echo "::set-output name=sha::$(git rev-parse --short ${GITHUB_SHA})"
-
       - name: Get Date String
         id: get-date-string
         run: echo "::set-output name=date_string::$(date +%Y-%m-%d)"
 
-      - name: Update the package version
-        uses: jacobtomlinson/gha-find-replace@master
+      - uses: actions/download-artifact@v2
         with:
-          find: "\"version\": \"(\\d+\\.\\d+\\.\\d+)\""
-          replace: "\"version\": \"$1-${{ steps.get-short-sha.outputs.sha }}\""
-          include: "package.json"
-          exclude: ".git"
+          name: hello.vsix
 
       - uses: actions/create-release@v1
         env:
@@ -73,6 +77,6 @@ jobs:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
             asset_content_type: application/octet-stream
-            asset_name: bcny.vsix
+            asset_name: hello.vsix
             asset_path: ${{ github.workspace }}/out/hello.vsix
             upload_url: ${{ steps.create_release.outputs.upload_url }}
