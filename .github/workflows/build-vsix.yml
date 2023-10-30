@@ -56,10 +56,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-
-      - name: Get Date String
-        id: get-date-string
-        run: echo "date_string=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
     
       - name: Get package version
         id: get-package-version
@@ -76,8 +72,8 @@ jobs:
         with:
           draft: false
           prerelease: false
-          release_name: v${{ steps.get-package-version.outputs.package_version }}-${{ steps.get-date-string.outputs.date_string }}+${{ steps.get-short-sha.outputs.sha }}
-          tag_name: v${{ steps.get-package-version.outputs.package_version }}-${{ steps.get-date-string.outputs.date_string }}+${{ steps.get-short-sha.outputs.sha }}
+          release_name: v${{ steps.get-package-version.outputs.package_version }}-${{ steps.get-short-sha.outputs.sha }}
+          tag_name: v${{ steps.get-package-version.outputs.package_version }}-${{ steps.get-short-sha.outputs.sha }}
 
       - uses: actions/download-artifact@v2
         with:
