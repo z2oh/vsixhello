@@ -78,5 +78,5 @@ jobs:
         with:
             asset_content_type: application/octet-stream
             asset_name: hello.vsix
-            asset_path: ${{ github.workspace }}/out/hello.vsix
+            asset_path: hello.vsix
             upload_url: ${{ steps.create_release.outputs.upload_url }}
