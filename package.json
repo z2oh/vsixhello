@@ -1,6 +1,7 @@
 {
   "name": "vsixhello",
   "displayName": "vsixhello",
+  "repository": "https://github.com/z2oh/vsixhello",
   "description": "",
   "version": "0.0.1",
   "engines": {
@@ -23,7 +24,7 @@
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "package": "vsce package -o ./out/bcny.vsix",
+    "package": "vsce package -o ./out/hello.vsix",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js"
