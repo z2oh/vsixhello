@@ -1,0 +1,72 @@
+name: Build VSIX
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v2.1.2
+        with:
+          node-version: '16'
+          check-latest: true
+
+      - name: Get Short SHA
+        id: get-short-sha
+        run: echo "::set-output name=sha::$(git rev-parse --short ${GITHUB_SHA})"
+
+      - name: Get Date String
+        id: get-date-string
+        run: echo "::set-output name=date_string::$(date +%Y-%m-%d)"
+
+      - name: Update the package version
+        uses: jacobtomlinson/gha-find-replace@master
+        with:
+          find: "\"version\": \"(\\d+\\.\\d+\\.\\d+)\""
+          replace: "\"version\": \"$1-${{ steps.get-short-sha.outputs.sha }}\""
+          include: "package.json"
+          exclude: ".git"
+
+      - name: Build the VSIX
+        run:  |
+          npm install
+          npm run package
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: hello.vsix
+          path: ./out/hello.vsix
+          if-no-files-found: error
+
+      - uses: actions/create-release@v1
+        if: github.event_name == 'push'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        id: create_release
+        with:
+          draft: false
+          prerelease: false
+          release_name: ${{ steps.get-date-string.outputs.date_string }} ${{ github.run_id }}
+          tag_name: ${{ steps.get-date-string.outputs.date_string }} ${{ github.run_id }}
+
+      - uses: actions/upload-release-asset@v1.0.2
+        if: github.event_name == 'push'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          asset_content_type: application/octet-stream
+          asset_name: bcny.vsix
+          asset_path: ${{ github.workspace }}/out/hello.vsix
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
